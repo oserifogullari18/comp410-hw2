@@ -40,6 +40,7 @@ struct smallCube {
   GLfloat pos[NumPos];
   int identity;
   int nextIdentity;
+  int surface_id;
   int SurfaceColors[6];
 };
 
@@ -336,6 +337,20 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
       break;
     // change draw mode
     case GLFW_MOUSE_BUTTON_LEFT:
+      double x, y;
+      glfwGetCursorPos(window, &x, &y);
+
+      int current_width, current_height;
+      glfwGetWindowSize(window, &current_width, &current_height);
+      y = current_height - y;
+
+      unsigned char pixel[4];
+      glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+      int R = (int)pixel[0], G = (int)pixel[1], B = (int)pixel[2];
+      std::cout << R << std::endl;
+      std::cout << G << std::endl;
+      std::cout << B << std::endl;
+
       break;
       // set how the triangles are drawn;
       // wireframe (i.e., as lines)s olid mode break;
