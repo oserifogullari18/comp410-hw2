@@ -11,18 +11,11 @@ typedef vec4 color4;
 typedef vec4 point4;
 
 const int NumVertices_cube =
-    36;                  //(6 faces)(2 triangles/face)(3 vertices/triangle)
-const int numCubes = 27; // nums of cube 2x2x2 rubix cube
+    36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 float radius = 0.25;
 
 int WIDTH = 800;
 int HEIGHT = 600;
-
-int shuffle[] = {rand() % 4, rand() % 4, rand() % 4, rand() % 4, rand() % 4};
-
-double counter = 0; // for rotation animation
-int shuffle_counter = sizeof(shuffle) / sizeof(shuffle[0]) -
-                      1; // Shuffle count, array size of shuffle
 
 // position enumeration
 enum { PosX, PosY, PosZ, NumPos };
@@ -38,13 +31,11 @@ struct smallCube {
   color4 colors[NumVertices_cube];
   GLfloat theta[NumAxes];
   GLfloat pos[NumPos];
-  int identity;
-  int nextIdentity;
+  int CurrentLocID;
+  int InitialLocID;
   int surface_id;
   int SurfaceColors[6];
 };
-
-struct smallCube Cubes[numCubes];
 
 // Vertices of a unit cube centered at origin, sides aligned with axes
 point4 verticesCube[8]{point4(-radius, -radius, radius, 1.0),
@@ -67,40 +58,51 @@ color4 vertexColors[6] = {
     color4(1, 0.647, 0, 1.0),   // orange
 };
 
+color4 Color_id[6] = {
+    color4(1.0, 0.0, 0.0, 1.0), // red
+    color4(1.0, 1.0, 0.0, 1.0), // yellow
+    color4(0.0, 1.0, 0.0, 1.0), // green
+    color4(0.0, 0.0, 1.0, 1.0), // blue
+    color4(1.0, 1.0, 1.0, 1.0), // white
+    color4(1, 0.647, 0, 1.0),   // orange
+};
+const int numCubes = 27; // nums of cube 2x2x2 rubix cube
+struct smallCube Cubes[numCubes];
 // Array of cube positions for each coordinate axis
 GLfloat Position[numCubes][NumPos] = {
     // cube id
-    {-0.51, 0.51, -0.51},  // 0
-    {0.51, 0.51, -0.51},   // 1
-    {0.51, 0.51, 0.51},    // 2
-    {-0.51, 0.51, 0.51},   // 3
-    {-0.51, -0.51, -0.51}, // 4
-    {0.51, -0.51, -0.51},  // 5
-    {0.51, -0.51, 0.51},   // 6
-    {-0.51, -0.51, 0.51},  // 7
+    // z(1)
+    {-0.51, 0.51, 0.51},  // 0
+    {0, 0.51, 0.51},      // 1
+    {0.51, 0.51, 0.51},   // 2
+    {-0.51, 0, 0.51},     // 3
+    {0, 0, 0.51},         // 4
+    {0.51, 0, 0.51},      // 5
+    {-0.51, -0.51, 0.51}, // 6
+    {0, -0.51, 0.51},     // 7
+    {0.51, -0.51, 0.51},  // 8
 
-    {-0.51, 0.51, 0},  // 8
-    {0.51, 0.51, 0},   // 9
-    {-0.51, -0.51, 0}, // 10
-    {0.51, -0.51, 0},  // 11
-    {0, 0, 0},         // 12
+    // z(0)
+    {-0.51, 0.51, 0},  // 9
+    {0, 0.51, 0},      // 10
+    {0.51, 0.51, 0},   // 11
+    {-0.51, 0, 0},     // 12
+    {0, 0, 0},         // 13
+    {0.51, 0, 0},      // 14
+    {-0.51, -0.51, 0}, // 15
+    {0, -0.51, 0},     // 16
+    {0.51, -0.51, 0},  // 17
 
-    {-0.51, 0, 0.51},  // 13
-    {0.51, 0, 0.51},   // 14
-    {-0.51, 0, -0.51}, // 15
-    {0.51, 0, -0.51},  // 16
-
-    {0, -0.51, 0.51},  // 17
-    {0, 0.51, 0.51},   // 18
-    {0, -0.51, -0.51}, // 19
-    {0, 0.51, -0.51},  // 20
-
-    {0, -0.51, 0}, // 21
-    {0, 0.51, 0},  // 22
-    {0, 0, -0.51}, // 23
-    {0, 0, 0.51},  // 24
-    {-0.51, 0, 0}, // 25
-    {0.51, 0, 0},  // 26
+    // z(-1)
+    {-0.51, 0.51, -0.51},  // 18
+    {0, 0.51, -0.51},      // 19
+    {0.51, 0.51, -0.51},   // 20
+    {-0.51, 0, -0.51},     // 21
+    {0, 0, -0.51},         // 22
+    {0.51, 0, -0.51},      // 23
+    {-0.51, -0.51, -0.51}, // 24
+    {0, -0.51, -0.51},     // 25
+    {0.51, -0.51, -0.51}   // 26
 
 };
 
@@ -168,8 +170,8 @@ void rubiksCube() {
     Cubes[i].SurfaceColors[4] = 4;
     Cubes[i].SurfaceColors[5] = 5;
 
-    Cubes[i].identity = i;
-    Cubes[i].nextIdentity = i;
+    Cubes[i].CurrentLocID = i;
+    Cubes[i].InitialLocID = i;
 
     Cubes[i].pos[PosX] = Position[i][PosX];
     Cubes[i].pos[PosY] = Position[i][PosY];
@@ -180,6 +182,258 @@ void rubiksCube() {
     Cubes[i].theta[Zaxis] = 0.0;
 
     createQuads(i);
+  }
+}
+
+void rotate(int RoteteNumber, int RotateDirection) {
+
+  switch (RoteteNumber) {
+  // rotate red surface
+  case 1:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+        if (Cubes[i].CurrentLocID == 0) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 6;
+        } else if (Cubes[i].CurrentLocID == 1) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 3;
+        } else if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 0;
+        } else if (Cubes[i].CurrentLocID == 3) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 7;
+        } else if (Cubes[i].CurrentLocID == 4) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 4;
+        } else if (Cubes[i].CurrentLocID == 5) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 1;
+        } else if (Cubes[i].CurrentLocID == 6) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 8;
+        } else if (Cubes[i].CurrentLocID == 7) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 5;
+        } else if (Cubes[i].CurrentLocID == 8) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].CurrentLocID = 2;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 0) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 2;
+        } else if (Cubes[i].CurrentLocID == 1) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 5;
+        } else if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 8;
+        } else if (Cubes[i].CurrentLocID == 3) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 1;
+        } else if (Cubes[i].CurrentLocID == 4) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 4;
+        } else if (Cubes[i].CurrentLocID == 5) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 7;
+        } else if (Cubes[i].CurrentLocID == 6) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 0;
+        } else if (Cubes[i].CurrentLocID == 7) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 3;
+        } else if (Cubes[i].CurrentLocID == 8) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 6;
+        }
+      }
+    }
+    break;
+
+    // rotate yellow surface
+  case 2:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+        if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 8;
+        } else if (Cubes[i].CurrentLocID == 11) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 5;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 2;
+        } else if (Cubes[i].CurrentLocID == 5) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 17;
+        } else if (Cubes[i].CurrentLocID == 14) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 14;
+        } else if (Cubes[i].CurrentLocID == 23) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 11;
+        } else if (Cubes[i].CurrentLocID == 8) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 26;
+        } else if (Cubes[i].CurrentLocID == 17) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 23;
+        } else if (Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].CurrentLocID = 20;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 20;
+        } else if (Cubes[i].CurrentLocID == 11) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 23;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 26;
+        } else if (Cubes[i].CurrentLocID == 5) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 11;
+        } else if (Cubes[i].CurrentLocID == 14) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 14;
+        } else if (Cubes[i].CurrentLocID == 23) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 17;
+        } else if (Cubes[i].CurrentLocID == 8) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 2;
+        } else if (Cubes[i].CurrentLocID == 17) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 5;
+        } else if (Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].CurrentLocID = 8;
+        }
+      }
+    }
+
+    break;
+
+    // rotate blue surface
+  case 3:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
+            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 1 ||
+            Cubes[i].CurrentLocID == 10 || Cubes[i].CurrentLocID == 19 ||
+            Cubes[i].CurrentLocID == 2 || Cubes[i].CurrentLocID == 11 ||
+            Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Yaxis] += 90.0;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
+            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 1 ||
+            Cubes[i].CurrentLocID == 10 || Cubes[i].CurrentLocID == 19 ||
+            Cubes[i].CurrentLocID == 2 || Cubes[i].CurrentLocID == 11 ||
+            Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+        }
+      }
+    }
+
+    break;
+  // rotate green surface
+  case 4:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 6 || Cubes[i].CurrentLocID == 15 ||
+            Cubes[i].CurrentLocID == 24 || Cubes[i].CurrentLocID == 7 ||
+            Cubes[i].CurrentLocID == 16 || Cubes[i].CurrentLocID == 25 ||
+            Cubes[i].CurrentLocID == 8 || Cubes[i].CurrentLocID == 17 ||
+            Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Yaxis] += 90.0;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 6 || Cubes[i].CurrentLocID == 15 ||
+            Cubes[i].CurrentLocID == 24 || Cubes[i].CurrentLocID == 7 ||
+            Cubes[i].CurrentLocID == 16 || Cubes[i].CurrentLocID == 25 ||
+            Cubes[i].CurrentLocID == 8 || Cubes[i].CurrentLocID == 17 ||
+            Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+        }
+      }
+    }
+
+    break;
+
+    // rotate orange surface
+  case 5:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
+            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 3 ||
+            Cubes[i].CurrentLocID == 12 || Cubes[i].CurrentLocID == 21 ||
+            Cubes[i].CurrentLocID == 6 || Cubes[i].CurrentLocID == 15 ||
+            Cubes[i].CurrentLocID == 24) {
+          Cubes[i].theta[Xaxis] += 90.0;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
+            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 3 ||
+            Cubes[i].CurrentLocID == 12 || Cubes[i].CurrentLocID == 21 ||
+            Cubes[i].CurrentLocID == 6 || Cubes[i].CurrentLocID == 15 ||
+            Cubes[i].CurrentLocID == 24) {
+          Cubes[i].theta[Xaxis] -= 90.0;
+        }
+      }
+    }
+
+    break;
+
+    // rotate white surface
+  case 6:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 19 ||
+            Cubes[i].CurrentLocID == 20 || Cubes[i].CurrentLocID == 21 ||
+            Cubes[i].CurrentLocID == 22 || Cubes[i].CurrentLocID == 23 ||
+            Cubes[i].CurrentLocID == 24 || Cubes[i].CurrentLocID == 25 ||
+            Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Zaxis] += 90.0;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 19 ||
+            Cubes[i].CurrentLocID == 20 || Cubes[i].CurrentLocID == 21 ||
+            Cubes[i].CurrentLocID == 22 || Cubes[i].CurrentLocID == 23 ||
+            Cubes[i].CurrentLocID == 24 || Cubes[i].CurrentLocID == 25 ||
+            Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+        }
+      }
+    }
+    break;
   }
 }
 
@@ -231,12 +485,6 @@ void init() {
   glEnable(GL_DEPTH_TEST);
   // Set state variable "clear color" to clear buffer with.
   glClearColor(0.3, 0.3, 0.3, 0.3);
-}
-
-void shuffleCube() {
-  for (int i = 0; i < sizeof(shuffle) / sizeof(shuffle[0]); i++)
-    shuffle[i] = rand() % 4;
-  shuffle_counter = sizeof(shuffle) / sizeof(shuffle[0]) - 1;
 }
 
 //----------------------------------------------------------------------------
@@ -311,7 +559,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
       break;
 
     case GLFW_KEY_SPACE:
-      shuffleCube();
       printf("\n*** Shuffling cube ***\n");
 
     case GLFW_KEY_H:
@@ -329,27 +576,55 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 void mouse_button_callback(GLFWwindow *window, int button, int action,
                            int mods) {
   if (action == GLFW_PRESS) {
+    double cursor_x, cursor_y;
+    int current_width, current_height;
+    unsigned char pixel[4];
     switch (button) {
     // change the object shape type
     case GLFW_MOUSE_BUTTON_RIGHT:
-      break;
+      glfwGetCursorPos(window, &cursor_x, &cursor_y);
+      glfwGetWindowSize(window, &current_width, &current_height);
+      cursor_y = current_height - cursor_y;
+      glReadPixels(cursor_x, cursor_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+      if (pixel[0] == 255 && pixel[1] == 0 && pixel[2] == 0) {
+        rotate(1, 1); // red surface
+      } else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 0) {
+        rotate(2, 1); // yellow surface
+      } else if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 255) {
+        rotate(3, 1); // blue surface
+      } else if (pixel[0] == 0 && pixel[1] == 255 && pixel[2] == 0) {
+        rotate(4, 1); // green surface
+      } else if (pixel[0] == 255 && pixel[1] == 165 && pixel[2] == 0) {
+        rotate(5, 1); // orange surface
+      } else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255) {
+        rotate(6, 1); // white surface
+      }
+
     case GLFW_MOUSE_BUTTON_MIDDLE:
       break;
     // change draw mode
     case GLFW_MOUSE_BUTTON_LEFT:
-      double x, y;
-      glfwGetCursorPos(window, &x, &y);
-
-      int current_width, current_height;
+      glfwGetCursorPos(window, &cursor_x, &cursor_y);
       glfwGetWindowSize(window, &current_width, &current_height);
-      y = current_height - y;
+      cursor_y = current_height - cursor_y;
 
-      unsigned char pixel[4];
-      glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-      int R = (int)pixel[0], G = (int)pixel[1], B = (int)pixel[2];
-      std::cout << R << std::endl;
-      std::cout << G << std::endl;
-      std::cout << B << std::endl;
+      glReadPixels(cursor_x, cursor_y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+      if (pixel[0] == 255 && pixel[1] == 0 && pixel[2] == 0) {
+        rotate(1, 0); // red surface
+      } else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 0) {
+        rotate(2, 0); // yellow surface
+      } else if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 255) {
+        rotate(3, 0); // blue surface
+      } else if (pixel[0] == 0 && pixel[1] == 255 && pixel[2] == 0) {
+        rotate(4, 0); // green surface
+      } else if (pixel[0] == 255 && pixel[1] == 165 && pixel[2] == 0) {
+        rotate(5, 0); // orange surface
+      } else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255) {
+        rotate(6, 0); // white surface
+      }
+      // std::cout << (int)pixel[0] << std::endl;
+      // std::cout << (int)pixel[1] << std::endl;
+      // std::cout << (int)pixel[2] << std::endl;
 
       break;
       // set how the triangles are drawn;
@@ -359,9 +634,9 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(
-      0, 0, width,
-      height); // may not need this since the default is usually the window size
+  glViewport(0, 0, width,
+             height); // may not need this since the default is usually the
+                      // window size
 
   // Set projection matrix
   mat4 projection;
