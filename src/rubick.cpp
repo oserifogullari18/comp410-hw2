@@ -32,6 +32,7 @@ struct smallCube {
   GLfloat theta[NumAxes];
   GLfloat pos[NumPos];
   int CurrentLocID;
+  int TempLocID;
   int InitialLocID;
   int surface_id;
   int SurfaceColors[6];
@@ -172,6 +173,7 @@ void rubiksCube() {
 
     Cubes[i].CurrentLocID = i;
     Cubes[i].InitialLocID = i;
+    Cubes[i].TempLocID = i;
 
     Cubes[i].pos[PosX] = Position[i][PosX];
     Cubes[i].pos[PosY] = Position[i][PosY];
@@ -185,6 +187,13 @@ void rubiksCube() {
   }
 }
 
+void UpdateLocations() {
+  for (int i = 0; i < numCubes; i++) {
+    // std::cout << Cubes[i].CurrentLocID << std::endl;
+    Cubes[i].CurrentLocID = Cubes[i].TempLocID;
+  }
+}
+
 void rotate(int RoteteNumber, int RotateDirection) {
 
   switch (RoteteNumber) {
@@ -194,31 +203,34 @@ void rotate(int RoteteNumber, int RotateDirection) {
       for (int i = 0; i < numCubes; i++) {
         if (Cubes[i].CurrentLocID == 0) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 6;
+          Cubes[i].TempLocID = 6;
         } else if (Cubes[i].CurrentLocID == 1) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 3;
+          Cubes[i].TempLocID = 3;
         } else if (Cubes[i].CurrentLocID == 2) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 0;
+          Cubes[i].TempLocID = 0;
         } else if (Cubes[i].CurrentLocID == 3) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 7;
+          Cubes[i].TempLocID = 7;
         } else if (Cubes[i].CurrentLocID == 4) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 4;
+          Cubes[i].TempLocID = 4;
         } else if (Cubes[i].CurrentLocID == 5) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 1;
+          Cubes[i].TempLocID = 1;
         } else if (Cubes[i].CurrentLocID == 6) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 8;
+          Cubes[i].TempLocID = 8;
         } else if (Cubes[i].CurrentLocID == 7) {
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 5;
+          Cubes[i].TempLocID = 5;
         } else if (Cubes[i].CurrentLocID == 8) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
           Cubes[i].theta[Zaxis] += 90.0;
-          Cubes[i].CurrentLocID = 2;
+          Cubes[i].TempLocID = 2;
         }
       }
     } else {
@@ -226,131 +238,171 @@ void rotate(int RoteteNumber, int RotateDirection) {
 
         if (Cubes[i].CurrentLocID == 0) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 2;
+          Cubes[i].TempLocID = 2;
         } else if (Cubes[i].CurrentLocID == 1) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 5;
+          Cubes[i].TempLocID = 5;
         } else if (Cubes[i].CurrentLocID == 2) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 8;
+          Cubes[i].TempLocID = 8;
         } else if (Cubes[i].CurrentLocID == 3) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 1;
+          Cubes[i].TempLocID = 1;
         } else if (Cubes[i].CurrentLocID == 4) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 4;
+          Cubes[i].TempLocID = 4;
         } else if (Cubes[i].CurrentLocID == 5) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 7;
+          Cubes[i].TempLocID = 7;
         } else if (Cubes[i].CurrentLocID == 6) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 0;
+          Cubes[i].TempLocID = 0;
         } else if (Cubes[i].CurrentLocID == 7) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 3;
+          Cubes[i].TempLocID = 3;
         } else if (Cubes[i].CurrentLocID == 8) {
           Cubes[i].theta[Zaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 6;
+          Cubes[i].TempLocID = 6;
         }
       }
     }
+    UpdateLocations();
     break;
-
     // rotate yellow surface
   case 2:
     if (RotateDirection == 1) {
       for (int i = 0; i < numCubes; i++) {
         if (Cubes[i].CurrentLocID == 2) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 8;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 20;
         } else if (Cubes[i].CurrentLocID == 11) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 5;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 23;
         } else if (Cubes[i].CurrentLocID == 20) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 2;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 26;
         } else if (Cubes[i].CurrentLocID == 5) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 17;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 11;
         } else if (Cubes[i].CurrentLocID == 14) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 14;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 14;
         } else if (Cubes[i].CurrentLocID == 23) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 11;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 17;
         } else if (Cubes[i].CurrentLocID == 8) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 26;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 2;
         } else if (Cubes[i].CurrentLocID == 17) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 23;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 5;
         } else if (Cubes[i].CurrentLocID == 26) {
-          Cubes[i].theta[Xaxis] += 90.0;
-          Cubes[i].CurrentLocID = 20;
+          Cubes[i].theta[Xaxis] -= 90.0;
+          Cubes[i].TempLocID = 8;
         }
       }
     } else {
       for (int i = 0; i < numCubes; i++) {
-
         if (Cubes[i].CurrentLocID == 2) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 20;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 8;
         } else if (Cubes[i].CurrentLocID == 11) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 23;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 5;
         } else if (Cubes[i].CurrentLocID == 20) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 26;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 2;
         } else if (Cubes[i].CurrentLocID == 5) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 11;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 17;
         } else if (Cubes[i].CurrentLocID == 14) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 14;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 14;
         } else if (Cubes[i].CurrentLocID == 23) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 17;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 11;
         } else if (Cubes[i].CurrentLocID == 8) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 2;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 26;
         } else if (Cubes[i].CurrentLocID == 17) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 5;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 23;
         } else if (Cubes[i].CurrentLocID == 26) {
-          Cubes[i].theta[Xaxis] -= 90.0;
-          Cubes[i].CurrentLocID = 8;
+          Cubes[i].theta[Xaxis] += 90.0;
+          Cubes[i].TempLocID = 20;
         }
       }
     }
-
+    UpdateLocations();
     break;
 
     // rotate blue surface
   case 3:
     if (RotateDirection == 1) {
       for (int i = 0; i < numCubes; i++) {
-
-        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
-            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 1 ||
-            Cubes[i].CurrentLocID == 10 || Cubes[i].CurrentLocID == 19 ||
-            Cubes[i].CurrentLocID == 2 || Cubes[i].CurrentLocID == 11 ||
-            Cubes[i].CurrentLocID == 20) {
-          Cubes[i].theta[Yaxis] += 90.0;
+        if (Cubes[i].CurrentLocID == 0) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 18;
+        } else if (Cubes[i].CurrentLocID == 1) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 9;
+        } else if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 0;
+        } else if (Cubes[i].CurrentLocID == 9) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 19;
+        } else if (Cubes[i].CurrentLocID == 10) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 10;
+        } else if (Cubes[i].CurrentLocID == 11) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 1;
+        } else if (Cubes[i].CurrentLocID == 18) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 20;
+        } else if (Cubes[i].CurrentLocID == 19) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 11;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Yaxis] -= 90.0;
+          Cubes[i].TempLocID = 2;
         }
       }
     } else {
       for (int i = 0; i < numCubes; i++) {
 
-        if (Cubes[i].CurrentLocID == 0 || Cubes[i].CurrentLocID == 9 ||
-            Cubes[i].CurrentLocID == 18 || Cubes[i].CurrentLocID == 1 ||
-            Cubes[i].CurrentLocID == 10 || Cubes[i].CurrentLocID == 19 ||
-            Cubes[i].CurrentLocID == 2 || Cubes[i].CurrentLocID == 11 ||
-            Cubes[i].CurrentLocID == 20) {
-          Cubes[i].theta[Yaxis] -= 90.0;
+        if (Cubes[i].CurrentLocID == 0) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 2;
+        } else if (Cubes[i].CurrentLocID == 1) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 11;
+        } else if (Cubes[i].CurrentLocID == 2) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 20;
+        } else if (Cubes[i].CurrentLocID == 9) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 1;
+        } else if (Cubes[i].CurrentLocID == 10) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 10;
+        } else if (Cubes[i].CurrentLocID == 11) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 19;
+        } else if (Cubes[i].CurrentLocID == 18) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 0;
+        } else if (Cubes[i].CurrentLocID == 19) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 9;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Yaxis] += 90.0;
+          Cubes[i].TempLocID = 18;
         }
       }
     }
-
+    UpdateLocations();
     break;
   // rotate green surface
   case 4:
@@ -410,6 +462,76 @@ void rotate(int RoteteNumber, int RotateDirection) {
 
     // rotate white surface
   case 6:
+    if (RotateDirection == 1) {
+      for (int i = 0; i < numCubes; i++) {
+        if (Cubes[i].CurrentLocID == 18) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 24;
+        } else if (Cubes[i].CurrentLocID == 19) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 21;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 18;
+        } else if (Cubes[i].CurrentLocID == 21) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 25;
+        } else if (Cubes[i].CurrentLocID == 22) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 22;
+        } else if (Cubes[i].CurrentLocID == 23) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 19;
+        } else if (Cubes[i].CurrentLocID == 24) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 26;
+        } else if (Cubes[i].CurrentLocID == 25) {
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 23;
+        } else if (Cubes[i].CurrentLocID == 26) {
+          std::cout << Cubes[i].CurrentLocID << std::endl;
+          Cubes[i].theta[Zaxis] += 90.0;
+          Cubes[i].TempLocID = 20;
+        }
+      }
+    } else {
+      for (int i = 0; i < numCubes; i++) {
+
+        if (Cubes[i].CurrentLocID == 18) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 20;
+        } else if (Cubes[i].CurrentLocID == 19) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 23;
+        } else if (Cubes[i].CurrentLocID == 20) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 26;
+        } else if (Cubes[i].CurrentLocID == 21) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 19;
+        } else if (Cubes[i].CurrentLocID == 22) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 22;
+        } else if (Cubes[i].CurrentLocID == 23) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 25;
+        } else if (Cubes[i].CurrentLocID == 24) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 18;
+        } else if (Cubes[i].CurrentLocID == 25) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 21;
+        } else if (Cubes[i].CurrentLocID == 26) {
+          Cubes[i].theta[Zaxis] -= 90.0;
+          Cubes[i].TempLocID = 24;
+        }
+      }
+    }
+    UpdateLocations();
+    break;
+
     if (RotateDirection == 1) {
       for (int i = 0; i < numCubes; i++) {
 
@@ -599,7 +721,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
       } else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] == 255) {
         rotate(6, 1); // white surface
       }
-
+      break;
     case GLFW_MOUSE_BUTTON_MIDDLE:
       break;
     // change draw mode
