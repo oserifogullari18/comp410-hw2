@@ -1,9 +1,6 @@
 //
-//  Display a rotating cube
-//
-
-//
-//  Display a rotating cube, revisited
+// Comp410 Rubik's Cube
+// Özlem Şerifoğulları and Onur Çakı
 //
 #include "Angel.h"
 
@@ -13,6 +10,7 @@ typedef vec4 point4;
 // number of vertices in each cube
 const int NumVertices_cube =
     36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
+// radius of each cube
 float radius = 0.25;
 
 // window widht and height
@@ -38,12 +36,12 @@ struct smallCube {
   int CurrentLocID;
   int TempLocID;
   int InitialLocID;
-  int surface_id;
   int SurfaceColors[6];
   mat4 model_view;
 };
 
-// Vertices of a small cube centered at origin, sides aligned with axes
+// Vertices of a small cube in the Rubik centered at origin, sides aligned with
+// axes
 point4 verticesCube[8]{point4(-radius, -radius, radius, 1.0),
                        point4(-radius, radius, radius, 1.0),
                        point4(radius, radius, radius, 1.0),
@@ -64,8 +62,6 @@ point4 verticesCubeSurfaceID[8]{
     point4(radius * 3, radius * 3, -radius * 3, 1.0),
     point4(radius * 3, -radius * 3, -radius * 3, 1.0)};
 
-// 1    3      4     5        5          6
-// red, yellow, green, blue, white and orange
 color4 vertexColors[6] = {
     color4(1.0, 0.0, 0.0, 1.0), // red
     color4(1.0, 1.0, 0.0, 1.0), // yellow
@@ -79,6 +75,7 @@ color4 vertexColors[6] = {
 point4 pointsSurfaceIDCube[NumVertices_cube];
 color4 colorsSurfaceIDCube[NumVertices_cube];
 int IndexB = 0;
+// create two triangles for a surface
 void quadBig(int a, int b, int c, int d, int color) {
   colorsSurfaceIDCube[IndexB] = vertexColors[color];
   pointsSurfaceIDCube[IndexB] = verticesCubeSurfaceID[a];
@@ -100,7 +97,7 @@ void quadBig(int a, int b, int c, int d, int color) {
   IndexB++;
 }
 
-// create big cube
+// create quad for each surface
 void createQuadsBigCube() {
   IndexB = 0;
   quadBig(1, 0, 3, 2, 0);
@@ -112,7 +109,7 @@ void createQuadsBigCube() {
 }
 
 /////////// Create Small sub-cubes ///////////////
-const int numCubes = 27; // nums of cube 2x2x2 rubix cube
+const int numCubes = 27; // nums of cube 3x3x3 rubik cube
 struct smallCube Cubes[numCubes];
 // Array of cube positions for each coordinate axis
 GLfloat Position[numCubes][NumPos] = {
@@ -152,13 +149,6 @@ GLfloat Position[numCubes][NumPos] = {
 
 };
 
-// Model-view and projection matrices uniform location
-GLuint ModelView, Projection;
-
-// Array for VOA and VBO IDs
-GLuint VaoIDs[numCubes], VboIDs[numCubes];
-GLuint VaoIDSurfaceIDCube, VboIDSurfaceIDCube;
-
 //----------------------------------------------------------------------------
 
 // quad generates two triangles for each face and assigns colors
@@ -190,7 +180,7 @@ void quad(int a, int b, int c, int d, int color, int cube_index) {
   Cubes[cube_index].points[Index] = verticesCube[d];
   Index++;
 }
-// create small cube
+// create quads for each surface of a small cube
 void createQuads(int cube_index) {
   Index = 0;
   quad(1, 0, 3, 2, Cubes[cube_index].SurfaceColors[0], cube_index);
@@ -231,15 +221,14 @@ void rubiksCube() {
   }
 }
 
-// update location function after rotating
+// update locations after a rotation
 void UpdateLocations() {
   for (int i = 0; i < numCubes; i++) {
-    // std::cout << Cubes[i].CurrentLocID << std::endl;
     Cubes[i].CurrentLocID = Cubes[i].TempLocID;
   }
 }
 
-// Animating rotate with 5 degree speed
+// Animate rotation with 5 degree speed
 void timer_update() {
   for (int i = 0; i < numCubes; i++) {
     // Check X Axis
@@ -697,30 +686,33 @@ void rotate(int RoteteNumber, int RotateDirection) {
 int random(int min, int max) {
   return min + rand() / (RAND_MAX / (max - min + 1) + 1);
 }
-int RandomShuffleRotateSurfaces[10];
-int RandomShuffleRotateDir[10];
+int ShuffleRotateSurfaces[10];
+int ShuffleRotateDir[10];
 bool RandomShuffle = false;
+
+// Model-view and projection matrices uniform location
+GLuint ModelView, Projection;
+
+// Array for VOA and VBO IDs for small cubes in rubik
+GLuint VaoIDs[numCubes], VboIDs[numCubes];
+// VOA and VBO for big surface ID cube
+GLuint VaoIDSurfaceIDCube, VboIDSurfaceIDCube;
 
 // OpenGL initialization
 void init() {
-  // init rubiks
+  // init rubiks cube
   rubiksCube();
 
-  // create big cube for surface id
+  // create a big cube for surface id
   createQuadsBigCube();
 
   // Init shaders
   GLuint program = InitShader("src/vshader.glsl", "src/fshader.glsl");
-  // Retrieve tshader variables for collors and positions
+  // Retrieve shader variables for collors and positions
   GLuint vColor = glGetAttribLocation(program, "vColor");
   GLuint vPosition = glGetAttribLocation(program, "vPosition");
   // initialize program
   glUseProgram(program);
-
-  // create the Vertex Array Objects for small cubes in rubik
-  glGenVertexArrays(numCubes, VaoIDs);
-  // generating Vertex Buffer Objects (VBO) for small cubes in rubik
-  glGenBuffers(numCubes, VboIDs);
 
   // Create and bind a vertex array object for the big surface ID cube
   glGenVertexArrays(1, &VaoIDSurfaceIDCube);
@@ -744,6 +736,11 @@ void init() {
   glEnableVertexAttribArray(vColor);
   glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0,
                         BUFFER_OFFSET(sizeof(pointsSurfaceIDCube)));
+
+  // create the Vertex Array Objects for small cubes in rubik
+  glGenVertexArrays(numCubes, VaoIDs);
+  // generating Vertex Buffer Objects (VBO) for small cubes in rubik
+  glGenBuffers(numCubes, VboIDs);
 
   // Bind buffers and put points and collors into the buffers for each small
   // cube in the rubick
@@ -771,11 +768,6 @@ void init() {
   ModelView = glGetUniformLocation(program, "ModelView");
   Projection = glGetUniformLocation(program, "Projection");
 
-  mat4 projection;
-  projection = (Perspective(45.0, (GLfloat)WIDTH / (GLfloat)HEIGHT, 5, 20.0) *
-                Translate(vec3(0.0, 0.0, -10.0)));
-  glUniformMatrix4fv(Projection, 1, GL_TRUE, projection);
-
   // Enable hiddden surface removal
   glEnable(GL_DEPTH_TEST);
   // Set state variable "clear color" to clear buffer with.
@@ -786,7 +778,6 @@ void init() {
 // Display function
 void display(void) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  vec3 displacement;
   mat4 model_view;
 
   // projection matrix for camera setting camera
@@ -820,7 +811,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
     case GLFW_KEY_Q:
       exit(EXIT_SUCCESS);
       break;
-    // Change camera angles
+    // Change camera angles using W, A, S, D
     case GLFW_KEY_S:
       Theta[Xaxis] += 10.0;
 
@@ -853,15 +844,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
       break;
     // Shuffle Rubik
     case GLFW_KEY_SPACE:
-      printf("\n*** Shuffling Rubik ***\n");
+      printf("*** Shuffle Rubik ***\n");
       RandomShuffle = true;
       int dir;
       int surface;
       for (int i = 0; i < 10; i++) {
         surface = random(1, 6);
         dir = random(0, 1);
-        RandomShuffleRotateSurfaces[i] = surface;
-        RandomShuffleRotateDir[i] = dir;
+        ShuffleRotateSurfaces[i] = surface;
+        ShuffleRotateDir[i] = dir;
       }
       break;
     // Usage Help
@@ -869,9 +860,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
       printf("Press H to get help \n");
       printf("Left-Click on Surface -> Rotate Clockwise Direction \n");
       printf("Right-Click on Surface -> Rotate Anti-clockwise Direction \n");
-      printf("Space -> Shuffle Rubik \n");
-      printf("W, A, S, D -> Change View Angle \n");
-      printf("ESC or Q -> Exit Game \n");
+      printf("Press Space -> Shuffle Rubik \n");
+      printf("Press W, A, S, D -> Change View Angle \n");
+      printf("Press ESC or Q -> Exit Game \n");
       break;
     }
   }
@@ -884,9 +875,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     // Draw the surface ID cube in the back buffer (not seen in the screen)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     mat4 model_view =
-        mat4(Translate(vec3(0.0, 0.0, 0.0)) * Scale(1.0, 1.0, 1.0) *
-             Translate(vec3(Cubes[13].pos[PosX], Cubes[13].pos[PosY],
-                            Cubes[13].pos[PosZ])));
+        mat4(Translate(vec3(0.0, 0.0, 0.0)) * Scale(1.0, 1.0, 1.0));
     mat4 projection;
     projection = (Perspective(45.0, (GLfloat)WIDTH / (GLfloat)HEIGHT, 2, 20.0) *
                   Translate(vec3(0.0, 0.0, -5.0)) * RotateX(Theta[Xaxis]) *
@@ -899,7 +888,6 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     glFlush(); // forces all drawing commands to be sent to the graphics card
                // and executed immediately.
     glFinish();
-    // glfwSwapBuffers(window);
 
     // initialize variables for cursor position and current window sizes
     double cursor_x, cursor_y;
@@ -1001,7 +989,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   // initialize GLFW window
-  GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Rubick", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Rubik", NULL, NULL);
   glfwMakeContextCurrent(window);
   glewExperimental = GL_TRUE;
   glewInit();
@@ -1022,15 +1010,15 @@ int main() {
   // rotate in 120 fps
   double frameRate = 120, currentTime, previousTime = 0.0;
   while (!glfwWindowShouldClose(window)) {
-    // is there random shuffling ?
+    // is there random shuffle?
     if (RandomShuffle) {
 
       int surface;
       int dir;
       // apply 10 random rotationg
       for (int i = 0; i < 10; i++) {
-        surface = RandomShuffleRotateSurfaces[i];
-        dir = RandomShuffleRotateDir[i];
+        surface = ShuffleRotateSurfaces[i];
+        dir = ShuffleRotateDir[i];
         rotate(surface, dir);
         // wait for each rotation
         int theta = 90;
