@@ -351,7 +351,7 @@ void rotate(int RoteteNumber, int RotateDirection) {
     break;
     // rotate yellow surface
   case 2:
-    if (RotateDirection == 1) {
+    if (RotateDirection == 0) {
       for (int i = 0; i < numCubes; i++) {
         if (Cubes[i].CurrentLocID == 2) {
           Cubes[i].theta[Xaxis] -= 90.0;
@@ -419,7 +419,7 @@ void rotate(int RoteteNumber, int RotateDirection) {
 
     // rotate blue surface
   case 3:
-    if (RotateDirection == 1) {
+    if (RotateDirection == 0) {
       for (int i = 0; i < numCubes; i++) {
         if (Cubes[i].CurrentLocID == 0) {
           Cubes[i].theta[Yaxis] -= 90.0;
@@ -624,7 +624,7 @@ void rotate(int RoteteNumber, int RotateDirection) {
 
     // rotate white surface
   case 6:
-    if (RotateDirection == 1) {
+    if (RotateDirection == 0) {
       for (int i = 0; i < numCubes; i++) {
         if (Cubes[i].CurrentLocID == 18) {
           Cubes[i].theta[Zaxis] += 90.0;
@@ -866,12 +866,12 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
       break;
     // Usage Help
     case GLFW_KEY_H:
-      printf("Press h to get help \n");
-      printf("Press i to initialize the pose \n");
-      printf("Press c to change color \n");
-      printf("Press q to quit \n");
-      printf("Mouse Right Click to change the object shape type \n");
-      printf("Mouse Left Click to change the draw mode \n");
+      printf("Press H to get help \n");
+      printf("Left-Click on Surface -> Rotate Clockwise Direction \n");
+      printf("Right-Click on Surface -> Rotate Anti-clockwise Direction \n");
+      printf("Space -> Shuffle Rubik \n");
+      printf("W, A, S, D -> Change View Angle \n");
+      printf("ESC or Q -> Exit Game \n");
       break;
     }
   }
@@ -906,7 +906,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     int current_width, current_height;
     unsigned char pixel[4];
     switch (button) {
-    // change the object shape type
+    // rotate anticlockwise direction
     case GLFW_MOUSE_BUTTON_RIGHT:
       // don't take rotate commane if there is currently a rotation
       if (rotating) {
@@ -936,7 +936,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
       }
       break;
 
-    // Same thing but the other direction
+    // rotate clockwise direction
     case GLFW_MOUSE_BUTTON_LEFT:
       if (rotating) {
         break;
